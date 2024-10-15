@@ -16,8 +16,33 @@ class User:
 
 # Takes in two user objects and outputs a float denoting compatibility
 def compute_score(user1, user2):
-    # YOUR CODE HERE
-    return 0
+    score = 0
+    # Check gender preferences first
+    if user1.gender not in user2.preferences or user2.gender not in user1.preferences:
+        print("{} and {} do not align in terms of gender preferences".format(user1.name, user2.name))
+        return 0
+    
+    # Check grade years, we don't want them to more than two years apart
+    if abs(user1.grad_year - user2.grad_year) > 2:
+        print("{} and {} are over two years apart...making sure we don't catch a case".format(user1.name, user2.name))
+        return 0
+    else:
+        # depending on their year, add a certain amount of points
+        if user1.grad_year == user2.grad_year:
+            score += 20 
+        elif abs(user1.grad_year - user2.grad_year) > 1:
+            score += 10 
+        else:
+            score += 5
+
+    # for every question in the responses array that is the same, they get four points
+    total_questions = len(user1.responses)
+    for i in range(total_questions):
+        if user1.responses[i] == user2.responses[i]:
+            score += 4
+    # divide by 100 to normalize the score between 0-1
+    # the max score two users could have is 100 -- 80 from the matching responses (4 x 20) + 20 from being in the same grade
+    return (score/100)
 
 
 if __name__ == '__main__':
@@ -30,8 +55,10 @@ if __name__ == '__main__':
     with open(INPUT_FILE) as json_file:
         data = json.load(json_file)
         for user_obj in data['users']:
-            new_user = User(user_obj['name'], user_obj['gender'],
-                            user_obj['preferences'], user_obj['gradYear'],
+            new_user = User(user_obj['name'], 
+                            user_obj['gender'],
+                            user_obj['preferences'], 
+                            user_obj['gradYear'],
                             user_obj['responses'])
             users.append(new_user)
 
@@ -40,4 +67,4 @@ if __name__ == '__main__':
             user1 = users[i]
             user2 = users[j]
             score = compute_score(user1, user2)
-            print('Compatibility between {} and {}: {}'.format(user1.name, user2.name, score))
+            print('Compatibility between {} and {}: {}\n'.format(user1.name, user2.name, score))
